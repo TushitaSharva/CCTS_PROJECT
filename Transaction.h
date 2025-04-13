@@ -1,36 +1,24 @@
-#ifndef CCTS_TRANSACTION_H
-#define CCTS_TRANSACTION_H
+#ifndef TRANSACTION_H
+#define TRANSACTION_H
 
-#include <vector>
-#include <set>
-#include <mutex>
-#include <map>
-#include <chrono>
 #include <atomic>
 
 enum TransactionStatus {
-    aborted, commited
+    ongoing, aborted, committed
 };
 
-class Transaction {
+class Transaction
+{
 public:
-    int id;
+    int transactionId;
+    int threadId;
     std::atomic<TransactionStatus> status;
-    std::set<int> writeSet;
-    std::set<int> readSet;
 
-    std::map<int, int> localWrites;
-
-    // For BOCC, we will assign lamport clock values
-    int start_time;
-    int end_time;
-
-
-    Transaction(int i);
-    Transaction(int i, int timeStamp);
-    void write(int data_item, int value);
-    void read(int data_item);
+    Transaction(int trans_id, int thread_id) {
+        transactionId = trans_id;
+        threadId = thread_id;
+        status.store(ongoing);
+    }
 };
 
-
-#endif //CCTS_TRANSACTION_H
+#endif

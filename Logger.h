@@ -1,10 +1,12 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#include <iostream>
+#include <chrono>
+
 class Logger
 {
 public:
-    int x = 0;
     // Function to convert time_point to a formatted string
     std::string TIME(const std::chrono::high_resolution_clock::time_point& tp)
     {
