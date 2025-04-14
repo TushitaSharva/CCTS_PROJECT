@@ -16,67 +16,11 @@ public:
         std::strftime(buffer, sizeof(buffer), "%H:%M:%S", tm);
         return std::string(buffer);
     }
-
-    template<typename... Args>
-    void DEBUG(Args... args)
-    {
-        std::string filename = "debugs/";
-        switch (x)
-        {
-        case 1:
-            filename += "focc-cta-log.txt";
-            break;
-        case 2:
-            filename += "focc-ota-log.txt";
-            break;
-        default:
-            filename += "bocc-log.txt";
-        }
-        std::ofstream debugfile(filename, std::ios::app);
-        std::ostringstream oss;
-        (oss << ... << args);  // Use fold expression to stream all arguments
-        debugfile << oss.str() << "\n";
-        debugfile.close();
-    }
-
-    template<typename... Args>
-    void OUTPUT(Args... args)
-    {
-        std::string filename = "outputs/";
-        switch (x)
-        {
-        case 1:
-            filename += "focc-cta-log.txt";
-            break;
-        case 2:
-            filename += "focc-ota-log.txt";
-            break;
-        default:
-            filename += "bocc-log.txt";
-        }
-        std::ofstream outputfile(filename, std::ios::app);
-        std::ostringstream oss;
-        (oss << ... << args);  // Stream all arguments
-        outputfile << oss.str() << "\n";
-        outputfile.close();
-    }
-
+    
     template<typename... Args>
     void DEBUGT(Args... args)
     {
-        std::string filename = "debug/";
-        switch (x)
-        {
-        case 1:
-            filename += "focc-cta-log.txt";
-            break;
-        case 2:
-            filename += "focc-ota-log.txt";
-            break;
-        default:
-            filename += "bocc-log.txt";
-        }
-        std::ofstream debugfile(filename, std::ios::app);
+        std::ofstream debugfile("outputs/debug.txt", std::ios::app);
         std::ostringstream oss;
         (oss << ... << args);  // Use fold expression to stream all arguments
         debugfile << "[" << TIME(std::chrono::high_resolution_clock::now()) << "] " << oss.str() << "\n";
@@ -86,19 +30,8 @@ public:
     template<typename... Args>
     void OUTPUTT(Args... args)
     {
-        std::string filename = "outputs/";
-        switch (x)
-        {
-        case 1:
-            filename += "focc-cta-log.txt";
-            break;
-        case 2:
-            filename += "focc-ota-log.txt";
-            break;
-        default:
-            filename += "bocc-log.txt";
-        }
-        std::ofstream outputfile(filename, std::ios::app);
+        
+        std::ofstream outputfile("outputs/log.txt", std::ios::app);
         std::ostringstream oss;
         (oss << ... << args);  // Stream all arguments
         outputfile << "[" << TIME(std::chrono::high_resolution_clock::now()) << "] " << oss.str() << "\n";
@@ -107,3 +40,26 @@ public:
 };
 
 #endif
+
+
+// template<typename... Args>
+// void DEBUG(Args... args)
+// {
+//     std::string filename = "debugs/debug.txt";
+//     std::ofstream debugfile(filename, std::ios::app);
+//     std::ostringstream oss;
+//     (oss << ... << args);  // Use fold expression to stream all arguments
+//     debugfile << oss.str() << "\n";
+//     debugfile.close();
+// }
+
+// template<typename... Args>
+// void OUTPUT(Args... args)
+// {
+//     std::string filename = "debugs/debug.txt";
+//     std::ofstream outputfile(filename, std::ios::app);
+//     std::ostringstream oss;
+//     (oss << ... << args);  // Stream all arguments
+//     outputfile << oss.str() << "\n";
+//     outputfile.close();
+// }

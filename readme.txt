@@ -5,27 +5,23 @@ CS21BTECH11022
 -----------------------------------------------------------------
 
 This directory consists of the following files:
- - BOCC-CTA-CS21BTECH11022.cpp
- - FOCC-CTA-CS21BTECH11022.cpp
- - FOCC-OTA-CS21BTECH11022.cpp
- - Logger.h
- - Transaction.h
- - Transaction.cpp
- - DataItem.h
- - DataItemForAbortOther.h
- - report.pdf
- - readme.txt
- - inp.txt
- - run.sh
+ - Node.h : The header file that defines the types of Nodes
+ - NodeList.h & NodeList.cpp : The header file and cpp file respectivley for NodeList functions
+ - WaitsForGraph.h & WaitsForGraph.cpp: The header file and cpp file respectivley for Waits for graph deadlock detection functions
+ - OperationType.h: The file that defines the two operation types, READ AND WRITE (enum). This separate enum was created because both NodeList and WaitsForGraph are requiring a specification for node type. Therefore would be useful to have a separate enum across.
+ - Transaction.h: The header file that defines the Transaction class
+ - Logger.h: The header file that has functions to output to log files and debug files
+ - main.cpp: The main function that had transactions invoking and the output schedules
 
-ANd following sample folders
+
+And following sample folders
  - outputs
  - inputs
 
 -----------------------------------------------------------------
 
 'inp.txt' is a sample input file. The file contains
-the following information, as mentioned in the problem statement.
+the following information:
 
 
 NOTE:
