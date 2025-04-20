@@ -1,7 +1,6 @@
 #include "WaitsForGraph.h"
 
 bool WaitsForGraph::addReadOperation(int transactionId, DataItem *item, OperationType type) {
-    std::lock_guard<std::mutex> lock(graphMutex);
     for (auto writeTransaction : item->writeList) {
         adjacencyList[writeTransaction].insert(transactionId);
     }
@@ -18,7 +17,6 @@ bool WaitsForGraph::addReadOperation(int transactionId, DataItem *item, Operatio
 }
 
 bool WaitsForGraph::addWriteOperation(int transactionId, DataItem *item, OperationType type) {
-    std::lock_guard<std::mutex> lock(graphMutex);
     for (auto writeTransaction : item->writeList) {
         adjacencyList[writeTransaction].insert(transactionId);
     }

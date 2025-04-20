@@ -12,7 +12,6 @@ class WaitsForGraph {
 public:
     std::set<int> vertices;
     std::unordered_map<int, std::unordered_set<int>> adjacencyList;
-    std::mutex graphMutex;
 
     bool addReadOperation(int transactionId, DataItem* item, OperationType type);
     bool addWriteOperation(int transactionId, DataItem* item, OperationType type);

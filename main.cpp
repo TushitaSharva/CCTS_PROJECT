@@ -16,10 +16,12 @@
 #include <mutex>
 #include <thread>
 #include <memory>
+#include <algorithm>
 #include "Logger.h"
 #include "Transaction.h"
 #include "DataItem.h"
 #include "WaitsForGraph.h"
+#include "Scheduler.h"
 
 static Logger LOGGER;
 int n, m, totalTrans, constVal, numIters;
@@ -29,6 +31,7 @@ std::atomic<int> availableTransactionId{1};
 std::atomic<long long> totalCommitDelay{0};
 std::atomic<long long> totalAborts{0};
 WaitsForGraph G;
+std::shared_ptr<Scheduler> S;
 
 void init(std::string filename) {
     std::ifstream inputfile(filename);
@@ -48,54 +51,8 @@ double Timer(float exp_time) {
     return distr(generate);
 }
 
-float getRandomFloat() {
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-    static std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-    return dist(gen);
-}
-
 Transaction *begin_trans(int threadId) {
     return new Transaction(availableTransactionId.fetch_add(1), threadId);
-}
-
-bool read(Transaction *t, int index, int *localVal) {
-    bool permission = G.addReadOperation(t->transactionId, shared[index].get(), READ);
-    if(!permission) {
-        t->status = aborted;
-        return false;
-    }
-
-    Node* node = shared[index]->addRead(t);
-    std::unique_lock<std::mutex> lock(node->mtx);
-    node->cv.wait(lock, [&]() {return node->isAtHead; });
-    *localVal = shared[index]->value;
-
-    shared[index]->deleteRead(t);
-    return true;
-}
-
-bool write(Transaction *t, int index, int localVal) {
-    bool permission = G.addWriteOperation(t->transactionId, shared[index].get(), WRITE);
-    if(!permission) {
-        t->status = aborted;
-        return false;
-    }
-
-    Node* node = shared[index]->addWrite(t);
-    std::unique_lock<std::mutex> lock(node->mtx);
-    node->cv.wait(lock, [&]() {return node->isAtHead; });
-    shared[index]->value = localVal;
-    shared[index]->deleteWrite(t);
-    return true;
-}
-
-TransactionStatus tryCommit(Transaction *t) {
-    if(t->status == aborted) {
-        return aborted;
-    }
-
-    return committed;
 }
 
 void updtMem(int threadId) {
@@ -116,33 +73,42 @@ void updtMem(int threadId) {
 
         do {
             Transaction *t = begin_trans(threadId);
+            
+            std::vector<int> perm(m);
+            for(int i = 0; i < m; ++i) {
+                perm[i] = i;
+            }
+
+            std::random_device rd;
+            std::mt19937 g(rd());
+            std::shuffle(perm.begin(), perm.end(), g);
+
             int localVal = 0;
 
             for(int iter = 0; iter < numIters; iter++) {
-                int randInd = rand()%m;
                 int randVal = rand()%constVal;
 
-                bool readSuccess = read(t, randInd, &localVal);
+                bool readSuccess = S->read(t, perm[iter], &localVal);
                 if(!readSuccess) {
-                    LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " failed to read from [", randInd, "] a value ", localVal, ", breaking from the loop at time ");
+                    LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " failed to read from [", perm[iter], "] a value ", localVal, ", breaking from the loop at time ");
                     break;
                 }
-                LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " reads from [", randInd, "] a value ", localVal, " at time ");
+                LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " reads from [", perm[iter], "] a value ", localVal, " at time ");
                 
                 localVal += randVal;
-                bool writeSuccess = write(t, randInd, localVal);
+                bool writeSuccess = S->write(t, perm[iter], localVal);
 
                 if(!writeSuccess) {
-                    LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " failed to write (locally) to [", randInd, "] a value ", localVal, ", breaking from the loop at time ");
+                    LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " failed to write (locally) to [", perm[iter], "] a value ", localVal, ", breaking from the loop at time ");
                     break;
                 }
-                LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " writes (locally) to [", randInd, "] a value ", localVal, " at time ");
+                LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " writes (locally) to [", perm[iter], "] a value ", localVal, " at time ");
 
                 auto randTime = Timer(lambda);
                 usleep((int)Timer(lambda) *1e3);
             }
 
-            status = tryCommit(t);
+            status = S->tryCommit(t);
             LOGGER.OUTPUTT(t->transactionId, "th transaction's try commit resulted in ", status);
             if(status == aborted) {
                 abortCnt++;
@@ -181,7 +147,7 @@ int main(int argc, char *argv[]) {
     auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(stop_time - start_time).count();
     LOGGER.OUTPUTT("Total execution time: ", time_diff, " milliseconds");
 
-    std::cout << "[BTO] Avg commit delay = " << (double)totalCommitDelay.load()/totalTrans << " Avg aborts = " << (double)totalAborts.load()/totalTrans << "\n";
+    std::cout << "[O2PL] Avg commit delay = " << (double)totalCommitDelay.load()/totalTrans << " Avg aborts = " << (double)totalAborts.load()/totalTrans << "\n";
 
     return 0;
 }
