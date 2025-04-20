@@ -15,6 +15,10 @@ Node* NodeList::addReadNode(Transaction *t) {
         newNode->isAtHead = true;
         newNode->cv.notify_all();
         return newNode;
+    } else if (head == tail && head->type == READ) {
+        ReadNode* rnode = dynamic_cast<ReadNode*>(head);
+        rnode->tlist.insert(t);
+        head->cv.notify_all();
     } else {
         ReadNode* rnode = dynamic_cast<ReadNode*>(tail);
         if (rnode) {
