@@ -2,6 +2,8 @@
 #define NODE_H
 
 #include <set>
+#include <mutex>
+#include <condition_variable>
 #include "Transaction.h"
 #include "OperationType.h"
 
@@ -9,21 +11,42 @@ class Node {
 public:
     Node *next;
     OperationType type;
+
+    // Variables for signalling waiting threads
+    std::mutex mtx;
+    std::condition_variable cv;
+    bool isAtHead;
+
+    Node(OperationType t) : type(t) {
+        next = nullptr;
+        isAtHead = false;
+    }
+    virtual ~Node() {}
 };
 
 class ReadNode : public Node {
 public:
-    std::set<Transaction> tlist;
-    ReadNode() {
-        type = READ;
+    std::set<Transaction*> tlist;
+
+    ReadNode() : Node(READ) {}
+
+    ~ReadNode() override {
+        for (Transaction* t : tlist) {
+            delete t;
+        }
+        tlist.clear();
     }
 };
 
 class WriteNode : public Node {
 public:
     Transaction *transaction;
-    WriteNode() {
-        type = WRITE;
+    
+    WriteNode(Transaction* t) : Node(WRITE), transaction(t) {}
+
+    ~WriteNode() override {
+        delete transaction;
+        transaction = nullptr;
     }
 };
 

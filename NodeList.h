@@ -8,13 +8,14 @@ class NodeList {
 public:
     Node *head;
     Node *tail;
+    std::mutex listMutex;
 
-    void addReadNode(Transaction *t);
-    void addWriteNode(Transaction *t);
-    void deleteWriteNode(Transaction *t);
-    void deleteWriteNode(Transaction *t);
-    Node *getHead();
-    Node *getTail();    
+    NodeList();
+    ~NodeList();
+    Node* addReadNode(Transaction *t);
+    Node* addWriteNode(Transaction *t);
+    void deleteReadNode(Transaction *t);
+    void deleteWriteNode(Transaction *t);   
 };
 
 #endif

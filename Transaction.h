@@ -19,6 +19,8 @@ public:
         threadId = thread_id;
         status.store(ongoing);
     }
+
+    ~Transaction() = default;
 };
 
 #endif
