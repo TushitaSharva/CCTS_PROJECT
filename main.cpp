@@ -28,6 +28,7 @@ std::vector<std::shared_ptr<DataItem>> shared;
 std::atomic<int> availableTransactionId{1};
 std::atomic<long long> totalCommitDelay{0};
 std::atomic<long long> totalAborts{0};
+WaitsForGraph G;
 
 void init(std::string filename) {
     std::ifstream inputfile(filename);
@@ -59,15 +60,42 @@ Transaction *begin_trans(int threadId) {
 }
 
 bool read(Transaction *t, int index, int *localVal) {
-   
+    bool permission = G.addReadOperation(t->transactionId, shared[index].get(), READ);
+    if(!permission) {
+        t->status = aborted;
+        return false;
+    }
+
+    Node* node = shared[index]->addRead(t);
+    std::unique_lock<std::mutex> lock(node->mtx);
+    node->cv.wait(lock, [&]() {return node->isAtHead; });
+    *localVal = shared[index]->value;
+
+    shared[index]->deleteRead(t);
+    return true;
 }
 
 bool write(Transaction *t, int index, int localVal) {
-    
+    bool permission = G.addWriteOperation(t->transactionId, shared[index].get(), WRITE);
+    if(!permission) {
+        t->status = aborted;
+        return false;
+    }
+
+    Node* node = shared[index]->addWrite(t);
+    std::unique_lock<std::mutex> lock(node->mtx);
+    node->cv.wait(lock, [&]() {return node->isAtHead; });
+    shared[index]->value = localVal;
+    shared[index]->deleteWrite(t);
+    return true;
 }
 
 TransactionStatus tryCommit(Transaction *t) {
-    
+    if(t->status == aborted) {
+        return aborted;
+    }
+
+    return committed;
 }
 
 void updtMem(int threadId) {
@@ -134,7 +162,7 @@ void updtMem(int threadId) {
 int main(int argc, char *argv[]) {
     init(argv[1]);
     auto start_time = std::chrono::high_resolution_clock::now();
-    LOGGER.OUTPUT(argv[1]);
+    LOGGER.OUTPUTT(argv[1]);
     LOGGER.OUTPUTT("The start time is ");
 
     std::thread threads[n];
@@ -151,7 +179,7 @@ int main(int argc, char *argv[]) {
     LOGGER.OUTPUTT("The stop time is ");
 
     auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(stop_time - start_time).count();
-    LOGGER.OUTPUT("Total execution time: ", time_diff, " milliseconds");
+    LOGGER.OUTPUTT("Total execution time: ", time_diff, " milliseconds");
 
     std::cout << "[BTO] Avg commit delay = " << (double)totalCommitDelay.load()/totalTrans << " Avg aborts = " << (double)totalAborts.load()/totalTrans << "\n";
 

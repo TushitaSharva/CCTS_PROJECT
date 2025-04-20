@@ -3,14 +3,20 @@
 
 #include <set>
 #include <vector>
-#include "OperationType.h"
+#include <mutex>
+#include <unordered_map>
+#include <unordered_set>
+#include "DataItem.h"
 
 class WaitsForGraph {
 public:
     std::set<int> vertices;
-    std::vector<std::vector<int>> adjacencyList; // conflicts
+    std::unordered_map<int, std::unordered_set<int>> adjacencyList;
+    std::mutex graphMutex;
 
-    bool addOperation(int transactionId, int dataItemIndex, OperationType type);
+    bool addReadOperation(int transactionId, DataItem* item, OperationType type);
+    bool addWriteOperation(int transactionId, DataItem* item, OperationType type);
+    bool detectCycleUtil(int node, std::unordered_set<int>&visited, std::unordered_set<int> &recStack);
     bool detectCycle();
     void garbageCollect();
 };

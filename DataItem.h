@@ -6,14 +6,15 @@
 #include <mutex>
 
 class DataItem {
+public:
     int value;
     NodeList *nodeList;
     std::set<int> readList;
     std::set<int> writeList;
     std::mutex datalock;
 
-    void addRead(Transaction *t);
-    void addWrite(Transaction *t);
+    Node* addRead(Transaction *t);
+    Node* addWrite(Transaction *t);
     void deleteRead(Transaction *t);
     void deleteWrite(Transaction *t);
 };
