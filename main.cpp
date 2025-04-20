@@ -26,20 +26,17 @@
 static Logger LOGGER;
 int n, m, totalTrans, constVal, numIters;
 float lambda;
-std::vector<std::shared_ptr<DataItem>> shared;
 std::atomic<int> availableTransactionId{1};
 std::atomic<long long> totalCommitDelay{0};
 std::atomic<long long> totalAborts{0};
-WaitsForGraph G;
 std::shared_ptr<Scheduler> S;
 
 void init(std::string filename) {
     std::ifstream inputfile(filename);
     inputfile >> n >> m >> totalTrans >> constVal >> lambda >> numIters;
-    shared.resize(m);
-    for (int i = 0; i < m; ++i) {
-        shared[i] = std::make_shared<DataItem>();
-    }
+    std::cout << "HI1!" << "\n";
+    S->init(m);
+    std::cout << "HI!" << "\n";
     inputfile.close();
     return;
 }

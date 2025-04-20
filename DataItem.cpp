@@ -1,5 +1,14 @@
 #include "DataItem.h"
 
+DataItem::DataItem() {
+    this->value = 0;
+    this->nodeList = new NodeList();
+}
+
+DataItem::~DataItem() {
+    delete this->nodeList;
+}
+
 Node* DataItem::addRead(Transaction *t) {
     this->datalock.lock();
     Node* rnode = this->nodeList->addReadNode(t);

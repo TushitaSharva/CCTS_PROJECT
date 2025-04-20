@@ -13,6 +13,9 @@ public:
     std::set<int> writeList;
     std::mutex datalock;
 
+    DataItem();             // Constructor
+    ~DataItem();            // Destructor
+
     Node* addRead(Transaction *t);
     Node* addWrite(Transaction *t);
     void deleteRead(Transaction *t);

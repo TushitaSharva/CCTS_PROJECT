@@ -15,6 +15,13 @@ public:
     std::mutex graphlock;
     std::vector<std::shared_ptr<DataItem>> shared;
 
+    void init(int m) {
+        shared.resize(m);
+        for (int i = 0; i < m; ++i) {
+            shared[i] = std::make_shared<DataItem>();
+        }
+    }
+
     bool read(Transaction *t, int index, int *localVal) {
         graphlock.lock();
         bool permission = G.addReadOperation(t->transactionId, shared[index].get(), READ);
