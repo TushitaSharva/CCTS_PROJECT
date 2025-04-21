@@ -16,7 +16,7 @@ public:
     bool addReadOperation(int transactionId, DataItem* item, OperationType type);
     bool addWriteOperation(int transactionId, DataItem* item, OperationType type);
     bool detectCycleUtil(int node, std::unordered_set<int>&visited, std::unordered_set<int> &recStack);
-    bool detectCycle();
+    bool detectCycle(const std::unordered_map<int, std::unordered_set<int>>&tempAdjList);
     void garbageCollect();
 };
 

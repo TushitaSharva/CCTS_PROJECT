@@ -33,9 +33,7 @@ std::shared_ptr<Scheduler> S;
 void init(std::string filename) {
     std::ifstream inputfile(filename);
     inputfile >> n >> m >> totalTrans >> constVal >> lambda >> numIters;
-    std::cout << "HI1!" << "\n";
     S->init(m);
-    std::cout << "HI!" << "\n";
     inputfile.close();
     return;
 }

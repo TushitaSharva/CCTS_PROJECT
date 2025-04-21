@@ -1,0 +1,8 @@
+[16:26:07] inp.txt
+[16:26:07] The start time is 
+[16:26:07] Thread id 0, t1 reads from [0] a value 0 at time 
+[16:26:07] Thread id 0, t1 writes (locally) to [0] a value 383 at time 
+[16:26:07] 1th transaction's try commit resulted in 2
+[16:26:07] Commit Delay: 2 milliseconds, abortCount: 0
+[16:26:07] The stop time is 
+[16:26:07] Total execution time: 2 milliseconds

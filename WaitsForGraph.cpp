@@ -1,4 +1,5 @@
 #include "WaitsForGraph.h"
+#include <iostream>
 
 WaitsForGraph::~WaitsForGraph() {
     vertices.clear();
@@ -6,39 +7,44 @@ WaitsForGraph::~WaitsForGraph() {
 }
 
 bool WaitsForGraph::addReadOperation(int transactionId, DataItem *item, OperationType type) {
+    auto tempAdjList = adjacencyList;
+
     for (auto writeTransaction : item->writeList) {
-        adjacencyList[writeTransaction].insert(transactionId);
+        tempAdjList[writeTransaction].insert(transactionId);
     }
 
-    if (!detectCycle()) {
+    if (!detectCycle(tempAdjList)) {
+        for(int writeTransaction: item->writeList) {
+            adjacencyList[writeTransaction].insert(transactionId);
+        }
         return true;
-    }
-
-    for (auto writeTransaction : item->writeList) {
-        adjacencyList[writeTransaction].erase(transactionId);
     }
 
     return false;
 }
 
 bool WaitsForGraph::addWriteOperation(int transactionId, DataItem *item, OperationType type) {
+    auto tempAdjList = adjacencyList;
+
     for (auto writeTransaction : item->writeList) {
-        adjacencyList[writeTransaction].insert(transactionId);
+        tempAdjList[writeTransaction].insert(transactionId);
     }
 
     for (auto readTransaction : item->readList) {
-        adjacencyList[readTransaction].insert(transactionId);
+        if(transactionId != readTransaction) {
+            tempAdjList[readTransaction].insert(transactionId);
+        }
     }
 
-    if (!detectCycle()) {
+    if (!detectCycle(tempAdjList)) {
+        for (int writeTransaction : item->writeList) {
+            adjacencyList[writeTransaction].insert(transactionId);
+        }
+
+        for (int readTransaction : item->readList) {
+            adjacencyList[readTransaction].insert(transactionId);
+        }
         return true;
-    }
-
-    for (auto writeTransaction : item->writeList) {
-        adjacencyList[writeTransaction].erase(transactionId);
-    }
-    for (auto readTransaction : item->readList) {
-        adjacencyList[readTransaction].erase(transactionId);
     }
 
     return false;
@@ -58,7 +64,7 @@ bool WaitsForGraph::detectCycleUtil(int node, std::unordered_set<int>& visited, 
     return false;
 }
 
-bool WaitsForGraph::detectCycle() {
+bool WaitsForGraph::detectCycle(const std::unordered_map<int, std::unordered_set<int>>&tempAdjList) {
     std::unordered_set<int> visited, recStack;
     for (const auto& [node, _] : adjacencyList) {
         if (!visited.count(node)) {
