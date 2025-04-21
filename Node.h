@@ -43,11 +43,7 @@ public:
     Transaction *transaction;
     
     WriteNode(Transaction* t) : Node(WRITE), transaction(t) {}
-
-    ~WriteNode() override {
-        delete transaction;
-        transaction = nullptr;
-    }
+    ~WriteNode() override = default;
 };
 
 #endif

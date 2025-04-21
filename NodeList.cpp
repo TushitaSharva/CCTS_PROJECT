@@ -1,4 +1,5 @@
 #include "NodeList.h"
+#include <iostream>
 
 NodeList::NodeList() {
     this->head = nullptr;

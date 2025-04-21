@@ -58,7 +58,6 @@ void updtMem(int threadId) {
     for(int currTrans = 0; currTrans < numTrans; currTrans++) {
         abortCnt = 0;
 
-        
         auto critStartTime = std::chrono::high_resolution_clock::now();
 
         do {
@@ -74,10 +73,10 @@ void updtMem(int threadId) {
             std::shuffle(perm.begin(), perm.end(), g);
 
             int localVal = 0;
-
+            
             for(int iter = 0; iter < numIters; iter++) {
                 int randVal = rand()%constVal;
-
+                
                 bool readSuccess = S->read(t, perm[iter], localVal);
                 if(!readSuccess) {
                     LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " failed to read from [", perm[iter], "] a value ", localVal, ", breaking from the loop at time ");
@@ -87,13 +86,14 @@ void updtMem(int threadId) {
                 
                 localVal += randVal;
                 bool writeSuccess = S->write(t, perm[iter], localVal);
-
+                
                 if(!writeSuccess) {
                     LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " failed to write (locally) to [", perm[iter], "] a value ", localVal, ", breaking from the loop at time ");
                     break;
                 }
-                LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " writes (locally) to [", perm[iter], "] a value ", localVal, " at time ");
 
+                LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " writes (locally) to [", perm[iter], "] a value ", localVal, " at time ");
+                
                 auto randTime = Timer(lambda);
                 usleep((int)Timer(lambda) *1e3);
             }
