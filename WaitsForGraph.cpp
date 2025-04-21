@@ -1,5 +1,10 @@
 #include "WaitsForGraph.h"
 
+WaitsForGraph::~WaitsForGraph() {
+    vertices.clear();
+    adjacencyList.clear();
+}
+
 bool WaitsForGraph::addReadOperation(int transactionId, DataItem *item, OperationType type) {
     for (auto writeTransaction : item->writeList) {
         adjacencyList[writeTransaction].insert(transactionId);

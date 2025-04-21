@@ -1,71 +1,27 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
 
-#include <set>
 #include <vector>
 #include <mutex>
-#include <unordered_map>
-#include <unordered_set>
+#include <atomic>
 #include "DataItem.h"
 #include "WaitsForGraph.h"
+#include "Transaction.h"
 
 class Scheduler {
 public:
-    WaitsForGraph G;
-    std::mutex graphlock;
+    WaitsForGraph* G;
+    std::mutex graphLock;
     std::vector<std::shared_ptr<DataItem>> shared;
+    std::atomic<int> counter;
 
-    void init(int m) {
-        shared.resize(m);
-        for (int i = 0; i < m; ++i) {
-            shared[i] = std::make_shared<DataItem>();
-        }
-    }
-
-    bool read(Transaction *t, int index, int *localVal) {
-        graphlock.lock();
-        bool permission = G.addReadOperation(t->transactionId, shared[index].get(), READ);
-        if(!permission) {
-            t->status = aborted;
-            graphlock.unlock();
-            return false;
-        }
-        graphlock.unlock();
-    
-        Node* node = shared[index]->addRead(t);
-        std::unique_lock<std::mutex> lock(node->mtx);
-        node->cv.wait(lock, [&]() {return node->isAtHead; });
-        *localVal = shared[index]->value;
-    
-        shared[index]->deleteRead(t);
-        return true;
-    }
-
-    bool write(Transaction *t, int index, int localVal) {
-        graphlock.lock();
-        bool permission = G.addWriteOperation(t->transactionId, shared[index].get(), WRITE);
-        if(!permission) {
-            t->status = aborted;
-            graphlock.unlock();
-            return false;
-        }
-        graphlock.unlock();
-    
-        Node* node = shared[index]->addWrite(t);
-        std::unique_lock<std::mutex> lock(node->mtx);
-        node->cv.wait(lock, [&]() {return node->isAtHead; });
-        shared[index]->value = localVal;
-        shared[index]->deleteWrite(t);
-        return true;
-    }
-
-    TransactionStatus tryCommit(Transaction *t) {
-        if(t->status == aborted) {
-            return aborted;
-        }
-    
-        return committed;
-    }
+    Scheduler();
+    ~Scheduler();
+    void init(int m);
+    Transaction* begin_trans(int threadID);
+    bool read(Transaction* t, int index, int &localVal);
+    bool write(Transaction* t, int index, int localVal);
+    TransactionStatus tryCommit(Transaction* t);
 };
 
 #endif

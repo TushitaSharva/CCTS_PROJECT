@@ -26,7 +26,6 @@
 static Logger LOGGER;
 int n, m, totalTrans, constVal, numIters;
 float lambda;
-std::atomic<int> availableTransactionId{1};
 std::atomic<long long> totalCommitDelay{0};
 std::atomic<long long> totalAborts{0};
 std::shared_ptr<Scheduler> S;
@@ -48,10 +47,6 @@ double Timer(float exp_time) {
     return distr(generate);
 }
 
-Transaction *begin_trans(int threadId) {
-    return new Transaction(availableTransactionId.fetch_add(1), threadId);
-}
-
 void updtMem(int threadId) {
     TransactionStatus status = aborted;
     int abortCnt = 0;
@@ -69,7 +64,7 @@ void updtMem(int threadId) {
         auto critStartTime = std::chrono::high_resolution_clock::now();
 
         do {
-            Transaction *t = begin_trans(threadId);
+            Transaction *t = S->begin_trans(threadId);
             
             std::vector<int> perm(m);
             for(int i = 0; i < m; ++i) {
@@ -85,7 +80,7 @@ void updtMem(int threadId) {
             for(int iter = 0; iter < numIters; iter++) {
                 int randVal = rand()%constVal;
 
-                bool readSuccess = S->read(t, perm[iter], &localVal);
+                bool readSuccess = S->read(t, perm[iter], localVal);
                 if(!readSuccess) {
                     LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " failed to read from [", perm[iter], "] a value ", localVal, ", breaking from the loop at time ");
                     break;
@@ -123,6 +118,7 @@ void updtMem(int threadId) {
 }
 
 int main(int argc, char *argv[]) {
+    S = std::make_shared<Scheduler>();
     init(argv[1]);
     auto start_time = std::chrono::high_resolution_clock::now();
     LOGGER.OUTPUTT(argv[1]);
