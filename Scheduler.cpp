@@ -24,7 +24,7 @@ Transaction* Scheduler::begin_trans(int threadID) {
 
 bool Scheduler::read(Transaction* t, int index, int &localVal) {
     graphLock.lock();
-    bool permission = G->addReadOperation(t->transactionId, shared[index].get(), READ);
+    bool permission = G->addReadOperation(t->transactionId, shared[index].get());
     if (!permission) {
         t->status = aborted;
         graphLock.unlock();
@@ -43,7 +43,7 @@ bool Scheduler::read(Transaction* t, int index, int &localVal) {
 
 bool Scheduler::write(Transaction* t, int index, int localVal) {
     graphLock.lock();
-    bool permission = G->addWriteOperation(t->transactionId, shared[index].get(), WRITE);
+    bool permission = G->addWriteOperation(t->transactionId, shared[index].get());
     if (!permission) {
         t->status = aborted;
         graphLock.unlock();

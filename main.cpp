@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
     init(argv[1]);
     auto start_time = std::chrono::high_resolution_clock::now();
     LOGGER.OUTPUTT(argv[1]);
-    LOGGER.OUTPUTT("The start time is ");
+    LOGGER.OUTPUTT("Started");
 
     std::thread threads[n];
 
@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
     }
 
     auto stop_time = std::chrono::high_resolution_clock::now();
-    LOGGER.OUTPUTT("The stop time is ");
+    LOGGER.OUTPUTT("Stopped");
 
     auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(stop_time - start_time).count();
     LOGGER.OUTPUTT("Total execution time: ", time_diff, " milliseconds");
