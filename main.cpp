@@ -74,7 +74,7 @@ void updtMem(int threadId) {
 
             int localVal = 0;
             
-            for(int iter = 0; iter < numIters; iter++) {
+            for(int iter = 0; iter < std::min(numIters, m); iter++) {
                 int randVal = rand()%constVal;
                 
                 bool readSuccess = S->read(t, perm[iter], localVal);
