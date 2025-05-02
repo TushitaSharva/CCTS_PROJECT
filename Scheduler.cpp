@@ -34,10 +34,11 @@ bool Scheduler::read(Transaction* t, int index, int &localVal) {
     }
     
     Node* node = shared[index]->addRead(t);
-    std::unique_lock<std::mutex> lock(node->mtx);
-    node->cv.wait(lock, [&]() {return node->isAtHead; });
-    localVal = shared[index]->value;
-
+    {
+        std::unique_lock<std::mutex> lock(node->mtx);
+        node->cv.wait(lock, [&]() {return node->isAtHead; });
+        localVal = shared[index]->value;
+    }
     shared[index]->deleteRead(t);
     return true;
 }
@@ -53,9 +54,11 @@ bool Scheduler::write(Transaction* t, int index, int localVal) {
     }
 
     Node* node = shared[index]->addWrite(t);
-    std::unique_lock<std::mutex> lock(node->mtx);
-    node->cv.wait(lock, [&]() {return node->isAtHead; });
-    shared[index]->value = localVal;
+    {
+        std::unique_lock<std::mutex> lock(node->mtx);
+        node->cv.wait(lock, [&]() {return node->isAtHead; });
+        shared[index]->value = localVal;
+    }
     
     shared[index]->deleteWrite(t);
     return true;
