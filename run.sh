@@ -9,4 +9,4 @@ fi
 # Input file
 input_file_name="inp.txt"
 g++ -std=c++17 main.cpp NodeList.cpp DataItem.cpp WaitsForGraph.cpp Scheduler.cpp -o a.out
-./a.out "inp.txt"
+valgrind ./a.out "inp.txt"

@@ -1,4 +1,5 @@
 #include "Scheduler.h"
+#include <iostream>
 
 Scheduler::Scheduler() : counter(1) {
     G = new WaitsForGraph();
@@ -23,15 +24,15 @@ Transaction* Scheduler::begin_trans(int threadID) {
 }
 
 bool Scheduler::read(Transaction* t, int index, int &localVal) {
-    graphLock.lock();
-    bool permission = G->addReadOperation(t->transactionId, shared[index].get());
-    if (!permission) {
-        t->status = aborted;
-        graphLock.unlock();
-        return false;
+    {
+        std::lock_guard<std::mutex> lock(graphLock);
+        bool permission = G->addReadOperation(t->transactionId, shared[index].get());
+        if (!permission) {
+            t->status = aborted;        
+            return false;
+        }
     }
-    graphLock.unlock();
-
+    
     Node* node = shared[index]->addRead(t);
     std::unique_lock<std::mutex> lock(node->mtx);
     node->cv.wait(lock, [&]() {return node->isAtHead; });
@@ -42,14 +43,14 @@ bool Scheduler::read(Transaction* t, int index, int &localVal) {
 }
 
 bool Scheduler::write(Transaction* t, int index, int localVal) {
-    graphLock.lock();
-    bool permission = G->addWriteOperation(t->transactionId, shared[index].get());
-    if (!permission) {
-        t->status = aborted;
-        graphLock.unlock();
-        return false;
+    {
+        std::lock_guard<std::mutex> lock(graphLock);
+        bool permission = G->addWriteOperation(t->transactionId, shared[index].get());
+        if (!permission) {
+            t->status = aborted;
+            return false;
+        }
     }
-    graphLock.unlock();
 
     Node* node = shared[index]->addWrite(t);
     std::unique_lock<std::mutex> lock(node->mtx);

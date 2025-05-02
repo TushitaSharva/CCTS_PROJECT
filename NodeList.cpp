@@ -7,7 +7,6 @@ NodeList::NodeList() {
 }
 
 Node* NodeList::addReadNode(Transaction *t) {
-    std::lock_guard<std::mutex> lock(listMutex);
     ReadNode* newNode;
     if (!head) {
         newNode = new ReadNode();
@@ -20,6 +19,7 @@ Node* NodeList::addReadNode(Transaction *t) {
         ReadNode* rnode = dynamic_cast<ReadNode*>(head);
         rnode->tlist.insert(t);
         head->cv.notify_all();
+        return rnode;
     } else {
         ReadNode* rnode = dynamic_cast<ReadNode*>(tail);
         if (rnode) {
@@ -36,7 +36,6 @@ Node* NodeList::addReadNode(Transaction *t) {
 }
 
 Node* NodeList::addWriteNode(Transaction *t) {
-    std::lock_guard<std::mutex> lock(listMutex);
     WriteNode* newNode = new WriteNode(t);
     if (!head) {
         head = tail = newNode;
@@ -50,10 +49,9 @@ Node* NodeList::addWriteNode(Transaction *t) {
 }
 
 void NodeList::deleteReadNode(Transaction *t) {
-    std::lock_guard<std::mutex> lock(listMutex);
     ReadNode* rnode = dynamic_cast<ReadNode*>(head);
     if (!rnode || rnode->tlist.find(t) == rnode->tlist.end()) return;
-
+    
     rnode->tlist.erase(t);
     if (rnode->tlist.size() == 0) {
         Node* toDel = head;
@@ -69,7 +67,6 @@ void NodeList::deleteReadNode(Transaction *t) {
 }
 
 void NodeList::deleteWriteNode(Transaction *t) {
-    std::lock_guard<std::mutex> lock(listMutex);
     WriteNode* wnode = dynamic_cast<WriteNode*>(head);
     if (!wnode || wnode->transaction != t) return;
 

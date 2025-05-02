@@ -8,7 +8,7 @@ class NodeList {
 public:
     Node *head;
     Node *tail;
-    std::mutex listMutex;
+    // std::mutex listMutex;
 
     NodeList();
     ~NodeList();

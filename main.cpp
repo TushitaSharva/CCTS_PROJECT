@@ -85,14 +85,14 @@ void updtMem(int threadId) {
                 LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " reads from [", perm[iter], "] a value ", localVal, " at time ");
                 
                 localVal += randVal;
-                bool writeSuccess = S->write(t, perm[iter], localVal);
+                // bool writeSuccess = S->write(t, perm[iter], localVal);
                 
-                if(!writeSuccess) {
-                    LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " failed to write (locally) to [", perm[iter], "] a value ", localVal, ", breaking from the loop at time ");
-                    break;
-                }
+                // if(!writeSuccess) {
+                //     LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " failed to write (locally) to [", perm[iter], "] a value ", localVal, ", breaking from the loop at time ");
+                //     break;
+                // }
 
-                LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " writes (locally) to [", perm[iter], "] a value ", localVal, " at time ");
+                // LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " writes (locally) to [", perm[iter], "] a value ", localVal, " at time ");
                 
                 auto randTime = Timer(lambda);
                 usleep((int)Timer(lambda) *1e3);

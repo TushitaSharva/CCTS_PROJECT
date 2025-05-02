@@ -6,6 +6,7 @@
 #include <condition_variable>
 #include "Transaction.h"
 #include "OperationType.h"
+#include <iostream>
 
 class Node {
 public:
@@ -29,13 +30,7 @@ public:
     std::set<Transaction*> tlist;
 
     ReadNode() : Node(READ) {}
-
-    ~ReadNode() override {
-        for (Transaction* t : tlist) {
-            delete t;
-        }
-        tlist.clear();
-    }
+    ~ReadNode() override = default;
 };
 
 class WriteNode : public Node {
