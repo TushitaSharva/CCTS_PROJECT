@@ -1,5 +1,4 @@
 #include "DataItem.h"
-#include <iostream>
 
 DataItem::DataItem() {
     this->value = 0;

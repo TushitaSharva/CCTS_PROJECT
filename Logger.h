@@ -2,38 +2,36 @@
 #define LOGGER_H
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
 #include <chrono>
+#include <ctime>
 
-class Logger
-{
+class Logger {
 public:
-    // Function to convert time_point to a formatted string
-    std::string TIME(const std::chrono::high_resolution_clock::time_point& tp)
-    {
+    std::string TIME(const std::chrono::high_resolution_clock::time_point& tp) {
         auto time_t = std::chrono::high_resolution_clock::to_time_t(tp);
-        std::tm* tm = std::localtime(&time_t); // Convert to local time
+        std::tm* tm = std::localtime(&time_t);
         char buffer[100];
         std::strftime(buffer, sizeof(buffer), "%H:%M:%S", tm);
         return std::string(buffer);
     }
-    
+
     template<typename... Args>
-    void DEBUGT(Args... args)
-    {
+    void DEBUGT(Args... args) {
         std::ofstream debugfile("outputs/debug.txt", std::ios::app);
         std::ostringstream oss;
-        (oss << ... << args);  // Use fold expression to stream all arguments
+        (oss << ... << args);
         debugfile << "[" << TIME(std::chrono::high_resolution_clock::now()) << "] " << oss.str() << "\n";
         debugfile.close();
     }
 
     template<typename... Args>
-    void OUTPUTT(Args... args)
-    {
-        
+    void OUTPUTT(Args... args) {
         std::ofstream outputfile("outputs/log.txt", std::ios::app);
         std::ostringstream oss;
-        (oss << ... << args);  // Stream all arguments
+        (oss << ... << args);
         outputfile << "[" << TIME(std::chrono::high_resolution_clock::now()) << "] " << oss.str() << "\n";
         outputfile.close();
     }

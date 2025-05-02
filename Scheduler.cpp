@@ -1,5 +1,4 @@
 #include "Scheduler.h"
-#include <iostream>
 
 Scheduler::Scheduler() : counter(1) {
     G = new WaitsForGraph();

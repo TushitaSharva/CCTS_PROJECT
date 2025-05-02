@@ -6,7 +6,6 @@
 #include <condition_variable>
 #include "Transaction.h"
 #include "OperationType.h"
-#include <iostream>
 
 class Node {
 public:
