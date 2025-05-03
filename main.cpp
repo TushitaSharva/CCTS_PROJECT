@@ -26,16 +26,24 @@
 static Logger LOGGER;
 int n, m, totalTrans, constVal, numIters;
 float lambda;
+float readRatio;
 std::atomic<long long> totalCommitDelay{0};
 std::atomic<long long> totalAborts{0};
 std::shared_ptr<Scheduler> S;
 
 void init(std::string filename) {
     std::ifstream inputfile(filename);
-    inputfile >> n >> m >> totalTrans >> constVal >> lambda >> numIters;
+    inputfile >> n >> m >> totalTrans >> constVal >> lambda >> numIters >> readRatio;
     S->init(m);
     inputfile.close();
     return;
+}
+
+float getRandomFloat() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+    return dist(gen);
 }
 
 double Timer(float exp_time) {
@@ -73,6 +81,8 @@ void updtMem(int threadId) {
             std::shuffle(perm.begin(), perm.end(), g);
 
             int localVal = 0;
+            float readChance = getRandomFloat();
+            bool readOnly = (readChance < readRatio ? true : false);
             
             for(int iter = 0; iter < std::min(numIters, m); iter++) {
                 int randVal = rand()%constVal;
@@ -84,16 +94,18 @@ void updtMem(int threadId) {
                 }
                 LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " reads from [", perm[iter], "] a value ", localVal, " at time ");
                 
-                localVal += randVal;
-                bool writeSuccess = S->write(t, perm[iter], localVal);
                 
-                if(!writeSuccess) {
-                    LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " failed to write to [", perm[iter], "] a value ", localVal, ", breaking from the loop at time ");
-                    break;
-                }
+                if(readOnly == false) {
+                    localVal += randVal;
+                    bool writeSuccess = S->write(t, perm[iter], localVal);
+                    
+                    if(!writeSuccess) {
+                        LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " failed to write to [", perm[iter], "] a value ", localVal, ", breaking from the loop at time ");
+                        break;
+                    }
 
-                LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " writes to [", perm[iter], "] a value ", localVal, " at time ");
-                
+                    LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " writes to [", perm[iter], "] a value ", localVal, " at time ");
+                }
                 auto randTime = Timer(lambda);
                 usleep((int)Timer(lambda) *1e3);
             }

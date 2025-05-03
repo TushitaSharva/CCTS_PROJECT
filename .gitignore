@@ -1,3 +1,4 @@
 outputs/*
-a.out
+*.out
 debugs/*
+.gitingore
