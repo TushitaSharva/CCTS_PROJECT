@@ -10,6 +10,7 @@
 
 class Logger {
 public:
+    int filenum = 0;
     std::string TIME(const std::chrono::high_resolution_clock::time_point& tp) {
         auto time_t = std::chrono::high_resolution_clock::to_time_t(tp);
         std::tm* tm = std::localtime(&time_t);
@@ -29,7 +30,8 @@ public:
 
     template<typename... Args>
     void OUTPUTT(Args... args) {
-        std::ofstream outputfile("outputs/log.txt", std::ios::app);
+        std::string filename = "outputs/log" + std::to_string(filenum) + ".txt";
+        std::ofstream outputfile(filename, std::ios::app);
         std::ostringstream oss;
         (oss << ... << args);
         outputfile << "[" << TIME(std::chrono::high_resolution_clock::now()) << "] " << oss.str() << "\n";

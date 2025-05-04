@@ -21,7 +21,7 @@
 #include "Transaction.h"
 #include "DataItem.h"
 #include "WaitsForGraph.h"
-#include "Scheduler.h"
+#include "OptimisticScheduler.h"
 
 static Logger LOGGER;
 int n, m, totalTrans, constVal, numIters;
@@ -29,12 +29,13 @@ float lambda;
 float readRatio;
 std::atomic<long long> totalCommitDelay{0};
 std::atomic<long long> totalAborts{0};
-std::shared_ptr<Scheduler> S;
+std::shared_ptr<OptimisticScheduler> S;
 
 void init(std::string filename) {
     std::ifstream inputfile(filename);
     inputfile >> n >> m >> totalTrans >> constVal >> lambda >> numIters >> readRatio;
     S->init(m);
+    LOGGER.filenum = 2;
     inputfile.close();
     return;
 }
@@ -128,7 +129,7 @@ void updtMem(int threadId) {
 }
 
 int main(int argc, char *argv[]) {
-    S = std::make_shared<Scheduler>();
+    S = std::make_shared<OptimisticScheduler>();
     init(argv[1]);
     auto start_time = std::chrono::high_resolution_clock::now();
     LOGGER.OUTPUTT(argv[1]);
@@ -150,7 +151,7 @@ int main(int argc, char *argv[]) {
     auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(stop_time - start_time).count();
     LOGGER.OUTPUTT("Total execution time: ", time_diff, " milliseconds");
 
-    std::cout << "[O2PL] Avg commit delay = " << (double)totalCommitDelay.load()/totalTrans << " Avg aborts = " << (double)totalAborts.load()/totalTrans << "\n";
+    std::cout << "[O-O2PL] Avg commit delay = " << (double)totalCommitDelay.load()/totalTrans << " Avg aborts = " << (double)totalAborts.load()/totalTrans << "\n";
 
     return 0;
 }
