@@ -2,6 +2,8 @@
 #define TRANSACTION_H
 
 #include <atomic>
+#include <set>
+#include <map>
 
 enum TransactionStatus {
     ongoing, aborted, committed
@@ -13,6 +15,9 @@ public:
     int transactionId;
     int threadId;
     std::atomic<TransactionStatus> status;
+    // dependency set and local writes map for Optimistic scheduler
+    std::set<int> dependencySet;
+    std::map<int, int> localWrites;
 
     Transaction(int trans_id, int thread_id) {
         transactionId = trans_id;

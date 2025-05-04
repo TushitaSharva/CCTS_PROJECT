@@ -180,3 +180,12 @@ void WaitsForGraph::garbageCollect()
 {
     // Optional: remove transactions that are committed/aborted from adjacencyList & vertices
 }
+
+void WaitsForGraph::deleteNode(int transactionId) {
+    vertices.erase(transactionId);
+    adjacencyList.erase(transactionId);
+    for (auto& [node, neighbors] : adjacencyList) {
+        neighbors.erase(transactionId);
+    }
+}
+

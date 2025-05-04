@@ -31,6 +31,8 @@ public:
                          std::vector<int>& path);
 
     void garbageCollect();
+
+    void deleteNode(int transactionId);
 };
 
 #endif

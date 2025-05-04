@@ -1,70 +1,95 @@
-#include "Scheduler.h"
+#include "OptimisticScheduler.h"
 
-Scheduler::Scheduler() : counter(1) {
+OptimisticScheduler::OptimisticScheduler() : counter(1) {
     G = new WaitsForGraph();
 }
 
-Scheduler::~Scheduler() {
+OptimisticScheduler::~OptimisticScheduler() {
     delete G;
     shared.clear();
 }
 
-void Scheduler::init(int m) {
+void OptimisticScheduler::init(int m) {
     shared.resize(m);
     for (int i=0; i<m; i++) {
         shared[i] = std::make_shared<DataItem>();
     }
 }
 
-Transaction* Scheduler::begin_trans(int threadID) {
+Transaction* OptimisticScheduler::begin_trans(int threadID) {
     int txnID = counter.fetch_add(1);
     Transaction* t = new Transaction(txnID, threadID);
     return t;
 }
 
-bool Scheduler::read(Transaction* t, int index, int &localVal) {
-    {
-        std::lock_guard<std::mutex> lock(graphLock);
-        bool permission = G->addReadOperation(t->transactionId, shared[index].get());
-        if (!permission) {
-            t->status = aborted;        
-            return false;
-        }
+bool OptimisticScheduler::read(Transaction* t, int index, int &localVal) {
+
+    std::unique_lock<std::mutex> lock(shared[index]->datalock);
+    localVal = shared[index]->value;
+    shared[index]->readList.insert(t->transactionId);
+    for (auto it: shared[index]->writeList) {
+        t->dependencySet.insert(it);
     }
-    
-    Node* node = shared[index]->addRead(t);
-    {
-        std::unique_lock<std::mutex> lock(node->mtx);
-        node->cv.wait(lock, [&]() {return node->isAtHead; });
-        localVal = shared[index]->value;
-    }
-    shared[index]->deleteRead(t);
     return true;
 }
 
-bool Scheduler::write(Transaction* t, int index, int localVal) {
-    {
-        std::lock_guard<std::mutex> lock(graphLock);
+bool OptimisticScheduler::write(Transaction* t, int index, int localVal) {
+    // local writes
+    t->localWrites[index] = localVal;
+    std::unique_lock<std::mutex> lock(shared[index]->datalock);
+    for (auto it: shared[index]->readList) {
+        t->dependencySet.insert(it);
+    }
+    for (auto it: shared[index]->writeList) {
+        t->dependencySet.insert(it);
+    }
+    shared[index]->writeList.insert(t->transactionId);
+    return true;
+}
+
+TransactionStatus OptimisticScheduler::tryCommit(Transaction* t) {
+    // Wait until all the dependencies are committed
+    while(true) {
+        std::set<int> remainingDependencies = checkDependency(t->dependencySet);
+        if (remainingDependencies.empty()) {
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    std::lock_guard<std::mutex> lock(graphLock);
+    for (auto [index, value]: t->localWrites) {
         bool permission = G->addWriteOperation(t->transactionId, shared[index].get());
         if (!permission) {
             t->status = aborted;
-            return false;
+            G->deleteNode(t->transactionId);
+            deleteAllWrites(t);
+            return aborted;
         }
     }
 
-    Node* node = shared[index]->addWrite(t);
-    {
-        std::unique_lock<std::mutex> lock(node->mtx);
-        node->cv.wait(lock, [&]() {return node->isAtHead; });
-        shared[index]->value = localVal;
+    for (auto [index, value]: t->localWrites) {
+        std::unique_lock<std::mutex> lock(shared[index]->datalock);
+        shared[index]->value = value;
     }
-    
-    shared[index]->deleteWrite(t);
-    return true;
+    std::lock_guard<std::mutex> lock(commitLock);
+    committedTransactions.insert(t->transactionId);
 }
 
-TransactionStatus Scheduler::tryCommit(Transaction* t) {
-    if (t->status == aborted) return aborted;
-    return committed; 
+std::set<int> OptimisticScheduler::checkDependency(std::set<int>& dependencySet) {
+    std::unique_lock<std::mutex> lock(commitLock);
+    std::set<int> result;
+    std::set_difference(
+        dependencySet.begin(), dependencySet.end(),
+        committedTransactions.begin(), committedTransactions.end(),
+        std::inserter(result, result.begin())
+    );
+    return result;
 }
 
+void OptimisticScheduler::deleteAllWrites(Transaction* t) {
+    for (auto [index, value]: t->localWrites) {
+        std::unique_lock<std::mutex> lock(shared[index]->datalock);
+        shared[index]->writeList.erase(t->transactionId);
+    }
+}
