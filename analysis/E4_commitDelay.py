@@ -1,24 +1,22 @@
-# AbortCount analysis with varying threads 2-32
-
 import matplotlib.pyplot as plt
 import os
 
 # Data
-numThreads = [2, 4, 8, 16, 32]
-O2PL =[452.5, 481.994, 531.406, 816.576, 1609.22]
+rr = [0.5, 0.6, 0.7, 0.8, 0.9]
+O2PL =[5335.73, 3516.02, 2274.64, 1017.08, 649.33]
 
 # make a big plot
 plt.figure(figsize=(16, 9))
 
 # plot data
-plt.plot(numThreads, O2PL, label='O2PL', marker='o', color='purple')
+plt.plot(rr, O2PL, label='O2PL', marker='o', color='purple')
 
 # show grid lines
 plt.grid(True)
 
-plt.xlabel('number of threads')
+plt.xlabel('read ratio')
 plt.ylabel('Average commit delay')
-plt.title('Commit delay Analysis with Varying number of threads')
+plt.title('Commit Delay Analysis with Varying read ratio')
 plt.legend()
 script_name = os.path.splitext(os.path.basename(__file__))[0]
 plt.savefig(f"{script_name}.png")
