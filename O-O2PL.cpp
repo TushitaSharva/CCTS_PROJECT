@@ -111,6 +111,7 @@ void updtMem(int threadId) {
                 usleep((int)Timer(lambda) *1e3);
             }
 
+            LOGGER.OUTPUTT("Thread id ", threadId, ", t", t->transactionId, " is trying to commit at time ");
             status = S->tryCommit(t);
             LOGGER.OUTPUTT(t->transactionId, "th transaction's try commit resulted in ", status);
             if(status == aborted) {
