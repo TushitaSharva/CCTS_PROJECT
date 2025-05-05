@@ -30,6 +30,17 @@ Transaction* OptimisticScheduler::begin_trans(int threadID) {
 bool OptimisticScheduler::read(Transaction* t, int index, int &localVal) {
 
     LOGGER.OUTPUTT("    t", t->transactionId, " is trying to read from [", index, "]");
+
+    {
+        std::lock_guard<std::mutex> lock(graphLock);
+        bool permission = G->addReadOperation(t->transactionId, shared[index].get());
+        if (!permission) {
+            t->status = aborted;
+            LOGGER.OUTPUTT("    t", t->transactionId, " aborted due to cycle in the WFG");
+            return false;
+        }
+    }
+
     std::unique_lock<std::mutex> lock(shared[index]->datalock);
     localVal = shared[index]->value;
     shared[index]->readList.insert(t->transactionId);
