@@ -83,7 +83,12 @@ TransactionStatus OptimisticScheduler::tryCommit(Transaction* t) {
     }
     graphLock.unlock();
 
-    LOGGER.OUTPUTT("    t", t->transactionId, " got permission to commit from WFG, starting the wait for dependencies");;
+    LOGGER.OUTPUTT("    t", t->transactionId, " got permission to commit from WFG, starting the wait for dependencies");
+    std::cout << "t" << t->transactionId << " has dependencies {";
+    for(auto i : t->dependencySet) {
+        std::cout << i << " ";
+    }
+    std::cout << "}\n";
 
     // Wait until all the dependencies are committed
     while(true) {
@@ -91,11 +96,10 @@ TransactionStatus OptimisticScheduler::tryCommit(Transaction* t) {
         if (remainingDependencies.empty()) {
             break;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     LOGGER.OUTPUTT("    t", t->transactionId, " has no remaining dependencies, proceeding to commit");
-
+    
     for (auto [index, value]: t->localWrites) {
         std::unique_lock<std::mutex> lock(shared[index]->datalock);
         shared[index]->value = value;
