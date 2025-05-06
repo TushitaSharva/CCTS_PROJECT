@@ -13,7 +13,9 @@ This directory contains the following files:
 - `OperationType.h` — Enum for `READ` and `WRITE` operations (used across NodeList and WaitsForGraph).
 - `Transaction.h` — Defines the `Transaction` class.
 - `Logger.h` — Functions for logging outputs and debug info.
-- `main.cpp` — Main function that invokes transactions and outputs schedules.
+- `Scheduler.h`, `Scheduler.cpp` - Defines the O2PL Scheduler class.
+- `OptimisticScheduler.h`, `OptimisticScheduler.cpp` - Defines Optimistic O2PL Scheduler class.
+- `O2PL.cpp`, `O-O2PL.cpp` - Contains main function that invokes transactions and output schedules.
 
 ### Sample Folders
 
