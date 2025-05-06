@@ -41,8 +41,12 @@ This directory contains the following files:
 
 ## 🏃 Execution Instructions
 
-### Method 1: Run for One Input File
+### Run for One Input File
 
 1. Give executable permission:
    ```bash
    chmod u+x run.sh
+
+### To run experiments
+ - Currently, `run.sh` runs for a single input file `inp.txt`. 
+ - Uncomment lines 16-38 to run the protocols on all input files. 

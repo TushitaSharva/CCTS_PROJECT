@@ -15,7 +15,6 @@ g++ -std=c++17 O-O2PL.cpp NodeList.cpp DataItem.cpp WaitsForGraph.cpp Optimistic
 
 # g++ -std=c++17 O2PL.cpp NodeList.cpp DataItem.cpp WaitsForGraph.cpp Scheduler.cpp -o o2pl.out
 # g++ -std=c++17 O-O2PL.cpp NodeList.cpp DataItem.cpp WaitsForGraph.cpp OptimisticScheduler.cpp -o oo2pl.out
-# Uncomment lines 37-47 to run loops
 # for input_file_name in ./inputs/E2/*.txt; do
 #     echo "Experiment: $input_file_name"
 #     ./a.out "$input_file_name"
