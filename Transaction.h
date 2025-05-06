@@ -18,6 +18,7 @@ public:
     // dependency set and local writes map for Optimistic scheduler
     std::set<int> dependencySet;
     std::map<int, int> localWrites;
+    std::set<int> readlist;
 
     Transaction(int trans_id, int thread_id) {
         transactionId = trans_id;

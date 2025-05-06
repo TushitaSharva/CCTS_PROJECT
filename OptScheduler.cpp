@@ -1,4 +1,4 @@
-#include "OptimisticScheduler.h"
+#include "OptScheduler.h"
 #include <iostream>
 #include "Logger.h"
 
@@ -31,17 +31,8 @@ bool OptimisticScheduler::read(Transaction* t, int index, int &localVal) {
 
     LOGGER.OUTPUTT("    t", t->transactionId, " is trying to read from [", index, "]");
 
-    {
-        std::lock_guard<std::mutex> lock(graphLock);
-        bool permission = G->addReadOperation(t->transactionId, shared[index].get());
-        if (!permission) {
-            t->status = aborted;
-            LOGGER.OUTPUTT("    t", t->transactionId, " aborted due to cycle in the WFG");
-            return false;
-        }
-    }
-
     std::unique_lock<std::mutex> lock(shared[index]->datalock);
+    t->readlist.insert(index);
     localVal = shared[index]->value;
     shared[index]->readList.insert(t->transactionId);
     LOGGER.OUTPUTT("    t", t->transactionId, " inserted in the readList of [", index, "]");
@@ -85,6 +76,19 @@ TransactionStatus OptimisticScheduler::tryCommit(Transaction* t) {
             t->status = aborted;
             G->deleteNode(t->transactionId);
             deleteAllWrites(t);
+            std::lock_guard<std::mutex> lock1(commitLock);
+            committedTransactions.insert(t->transactionId);
+            LOGGER.OUTPUTT("    t", t->transactionId, " aborted due to cycle in the WFG, added to committedTransactions");
+            graphLock.unlock();
+            return aborted;
+        }
+    }
+    
+    for(auto index : t->readlist) {
+        bool readpermission = G->addReadOperation(t->transactionId, shared[index].get());
+        if(!readpermission) {
+            t->status = aborted;
+            // G->deleteNode(t->transactionId);
             std::lock_guard<std::mutex> lock1(commitLock);
             committedTransactions.insert(t->transactionId);
             LOGGER.OUTPUTT("    t", t->transactionId, " aborted due to cycle in the WFG, added to committedTransactions");

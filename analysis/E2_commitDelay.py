@@ -6,12 +6,14 @@ import os
 # Data
 variables = [1000, 2000, 3000, 4000, 5000]
 O2PL = [1796.42, 855.366, 670.534, 607.568, 521.158]
+OO2PL = []
 
 # make a big plot
 plt.figure(figsize=(16, 9))
 
 # plot data
 plt.plot(variables, O2PL, label='O2PL', marker='o', color='purple')
+plt.plot(variables, OO2PL, label='optimistic-O2PL', marker='o', color='green')
 
 # show grid lines
 plt.grid(True)

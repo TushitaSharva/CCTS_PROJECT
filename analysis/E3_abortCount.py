@@ -6,12 +6,14 @@ import os
 # Data
 numThreads = [2, 4, 8, 16, 32]
 O2PL =[0.016, 0.05, 0.09, 0.19, 0.418]
+OO2PL = []
 
 # make a big plot
 plt.figure(figsize=(16, 9))
 
 # plot data
 plt.plot(numThreads, O2PL, label='O2PL', marker='o', color='purple')
+plt.plot(numThreads, OO2PL, label='optimistic-O2PL', marker='o', color='green')
 
 # show grid lines
 plt.grid(True)
