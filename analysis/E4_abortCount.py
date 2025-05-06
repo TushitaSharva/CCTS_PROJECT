@@ -1,13 +1,15 @@
 import matplotlib.pyplot as plt
 import os
+import numpy as np
 
 # Data
 rr = [0.5, 0.6, 0.7, 0.8, 0.9]
 O2PL =[0.926, 0.74, 0.496, 0.262, 0.11]
-OO2PL = []
+OO2PL = [0.956, 0.588, 0.432, 0.226, 0.118]
 
 # make a big plot
 plt.figure(figsize=(16, 9))
+plt.yticks(np.arange(0, 1, 0.1)) 
 
 # plot data
 plt.plot(rr, O2PL, label='O2PL', marker='o', color='purple')

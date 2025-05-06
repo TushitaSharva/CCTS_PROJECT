@@ -4,7 +4,7 @@ import os
 # Data
 numTransactions = [500, 1000, 1500, 2000, 2500]
 O2PL = [2094.83, 7439.61, 18841.1, 35267.7, 53869.1]
-OO2PL  = []
+OO2PL  = [2033.82, 5268.57, 9081.06, 9962, 9553.87]
 
 # make a big plot
 plt.figure(figsize=(16, 9))

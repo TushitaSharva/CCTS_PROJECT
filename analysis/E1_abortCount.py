@@ -5,7 +5,7 @@ import numpy as np
 # Data
 numTransactions = [500, 1000, 1500, 2000, 2500]
 O2PL = [0.522, 0.515, 0.500667, 0.469, 0.494]
-OO2PL = []
+OO2PL = [0.43, 0.423, 0.42733, 0.406, 0.4128]
 
 # make a big plot
 plt.figure(figsize=(16, 9))

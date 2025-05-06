@@ -2,11 +2,12 @@
 
 import matplotlib.pyplot as plt
 import os
+import numpy as np
 
 # Data
 numThreads = [2, 4, 8, 16, 32]
 O2PL =[452.5, 481.994, 531.406, 816.576, 1609.22]
-OO2PL = []
+OO2PL = [462.706, 554.908, 658.656, 1005.07, 1955.26]
 
 # make a big plot
 plt.figure(figsize=(16, 9))
